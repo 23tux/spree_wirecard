@@ -1,14 +1,1 @@
-<style>
-  .wirecard_qpay_frame {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    width: 620px;
-    height: 700px;
-  }
-</style>
-
-<fieldset id="wirecard_qpay_payment_<%= payment_method.id %>" data-hook>
-  <iframe id="wirecard_qpay_frame_<%= payment_method.id %>" class="wirecard_qpay_frame" src="<%= wirecard_qpay_payment_page_order_checkout_url(@order, :payment_method_id => payment_method.id) %>"></iframe>
-</fieldset>
-
+<INPUT TYPE="image" id="ppx1" src="<%= asset_path("store/images/wirecard_payment_methods.png") %>" align="left" style="margin-right:7px;"/>

@@ -1,13 +1,23 @@
+<style type="text/css" media="screen">
+  #wirecard_response pre {
+    white-space: pre-wrap;
+  }
+</style>
+
 <fieldset>
   <legend>Wirecard</legend>
 
-  <table class="index">
+  <table class="index" id="wirecard_response">
     <thead>
       <tr>
         <th colspan="2">Wircard Transaction</th>
       </tr>
     </thead>
     <tbody>
+      <tr>
+        <th scope="row">Response Code:</th>
+        <td><pre><%=raw payment.response_code %></pre></td>
+      </tr>
       <tr>
         <th scope="row">Currency:</th>
         <td><%= payment.source.currency %></td>
@@ -22,7 +32,7 @@
       </tr>
       <tr>
         <th scope="row">Params:</th>
-        <td><pre><%= payment.source.params.to_yaml %></pre></td>
+        <td><pre><%= payment.source.params.to_yaml.gsub(",", ", ") %></pre></td>
       </tr>
     </tbody>
   </table>

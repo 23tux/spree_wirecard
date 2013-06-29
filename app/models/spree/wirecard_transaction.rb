@@ -6,7 +6,12 @@ module Spree
 
     serialize :params, Hash
 
-    validate :check_fingerprint
+    validate :check_fingerprint, :if => Proc.new { |transaction|
+      return true if transaction.payments.empty?
+      !transaction.payments.first.state=="pending" &&
+      !transaction.payments.first.state=="failed" &&
+      !transaction.payments.first.state=="void"
+    }
 
     attr_accessor :payment_method
 
@@ -36,7 +41,18 @@ module Spree
       @response.success?
     end
 
-  private
+    def actions
+      %w{capture void}
+    end
+
+    private
+    def can_capture? *args
+      payment.pending?
+    end
+
+    def can_void? *args
+      payment.pending?
+    end
 
     def check_fingerprint
       errors[:base] << 'Invalid respone fingerprint.' unless @response.has_valid_fingerprint?

@@ -25,6 +25,15 @@ module Wirecard
   class Response
     attr_accessor :payment_method, :params
 
+    def to_s
+      if failure?
+        # payment method acts as a simple string and holds the error string
+        "#{payment_method}"
+      else
+        super
+      end
+    end
+
     def initialize(payment_method, params = {})
       self.payment_method = payment_method
       self.params = params.with_indifferent_access
@@ -42,7 +51,6 @@ module Wirecard
       fingerprint_params = response_fingerprint_order.split(',').map(&:to_sym)
       fingerprint_seed = params.merge(:secret => payment_method.preferences[:secret]).values_at(*fingerprint_params).join
       expected_fingerprint = Wirecard.md5(fingerprint_seed)
-
       response_fingerprint.present? && response_fingerprint == expected_fingerprint
     end
 

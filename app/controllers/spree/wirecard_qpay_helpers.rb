@@ -24,7 +24,6 @@ module Spree
     end
 
     def finalize_wirecard_qpay_payment(order, payment)
-      payment.complete!
       order.update_attributes({ :state => 'complete', :completed_at => Time.current }, :without_protection => true)
       state_callback(:after)
       order.finalize!

@@ -1,4 +1,15 @@
 <%
+def asset_url(_path)
+  host = Spree::Config[:site_url].strip
+  unless host.match /https?:\/\//
+    host = "http://#{host}"
+  end
+  uri = URI.parse(host)
+  URI::HTTP.build(:path => ActionController::Base.helpers.asset_path(_path), :host => uri.host, :port => (uri.port || 80)).to_s
+end
+%>
+
+<%
 wirecard_qpay_params = @order.wirecard_qpay_params(@payment_method,
   :order_id => @order.number,
   :payment_method_id => @payment_method.id,
@@ -7,6 +18,7 @@ wirecard_qpay_params = @order.wirecard_qpay_params(@payment_method,
   :cancelURL => wirecard_cancel_order_checkout_url(@order, :token => @order.token),
   :serviceURL => root_url,
   :confirmURL => wirecard_confirmations_url,
+  :imageURL => asset_url("admin/bg/spree_50.png")
 )
 %>
 
