@@ -6,7 +6,7 @@ module Spree
   CheckoutController.class_eval do
     include WirecardQPAYHelpers
 
-    skip_before_filter :verify_authenticity_token, :only => [:wirecard_success, :wirecard_failure, :wirecard_cancel]
+    skip_before_filter :verify_authenticity_token, :only => [:wirecard_success, :wirecard_failure, :wirecard_cancel, :wirecard_finish]
     before_filter :redirect_to_wirecard_form, :only => [:update]
 
     def wirecard_qpay_payment_page
@@ -17,11 +17,12 @@ module Spree
     def wirecard_success
       payment = find_or_create_wirecard_qpay_payment(@order, params)
 
-      @redirect_url = completion_route
+      #@redirect_url = completion_route
+      @redirect_url = nil
 
       unless payment.completed?
         if payment.source.success?
-          finalize_wirecard_qpay_payment(@order, payment)
+          #finalize_wirecard_qpay_payment(@order, payment) # we don't need this, because we finalize the payment in the confirm step
         else
           fail_wirecard_qpay_payment(@order, payment)
 
@@ -29,7 +30,24 @@ module Spree
         end
       end
 
-      render :wirecard_qpay_redirect, :layout => false
+      # sth went wrong!
+      if @redirect_url
+        redirect_to @redirect_url
+      else
+        # everything is fine, now display the confirmation site
+        #render :wirecard_qpay_redirect, :layout => false
+        @order.state = 'payment'
+        @order.save
+        @order.next # state == confirm
+        render 'spree/shared/paypal_express_confirm', locals: { isWirecard: true }
+      end
+    end
+
+    # finalizes the order, at this point the payment authorization is already complete!
+    def wirecard_finish
+      @order.update_attributes({:state => "complete", :completed_at => Time.now}, :without_protection => true)
+      @order.finalize!
+      redirect_to completion_route
     end
 
     def wirecard_failure
