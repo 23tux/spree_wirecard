@@ -25,22 +25,22 @@ module Spree
           #finalize_wirecard_qpay_payment(@order, payment) # we don't need this, because we finalize the payment in the confirm step
         else
           fail_wirecard_qpay_payment(@order, payment)
-
           @redirect_url = checkout_state_path(:payment)
         end
       end
 
-      # sth went wrong!
-      if @redirect_url
-        redirect_to @redirect_url
-      else
+      if @redirect_url.nil?
         # everything is fine, now display the confirmation site
-        #render :wirecard_qpay_redirect, :layout => false
         @order.state = 'payment'
         @order.save
         @order.next # state == confirm
-        render 'spree/shared/paypal_express_confirm', locals: { isWirecard: true }
+        @redirect_url = wirecard_confirm_order_checkout_url
       end
+      render :wirecard_qpay_redirect, :layout => false
+    end
+
+    def wirecard_confirm
+      render 'spree/shared/paypal_express_confirm', locals: { isWirecard: true }
     end
 
     # finalizes the order, at this point the payment authorization is already complete!

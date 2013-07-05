@@ -75,8 +75,34 @@ module Spree
 
     end
 
-    def get_details
+    def get_details order_number
+      # params
+      params = { customerId: preferences[:customer_id], toolkitPassword: preferences[:toolkit_password],
+        secret: preferences[:secret], command: "getorderdetails", language: preferences[:language],
+      orderNumber: order_number }
+      seed = params.values_at(:customerId, :toolkitPassword, :secret, :command, :language, :orderNumber).join
+      response = call_wirecard params, seed
+    end
 
+    def credit(amount, transaction, response_code, order_params, options={})
+      amount = amount.to_f / 100.to_f
+      params = { customerId: preferences[:customer_id], toolkitPassword: preferences[:toolkit_password],
+        secret: preferences[:secret], command: "refund", language: preferences[:language],
+      orderNumber: transaction.order_number, amount: amount, currency: preferences[:currency] }
+
+      seed = params.values_at(:customerId, :toolkitPassword, :secret, :command, :language, :orderNumber, :amount, :currency).join
+
+      response = call_wirecard params, seed
+      payment = transaction.payments.first
+      payment.response_code = response.body
+
+      payment_state = if response.body.index("paymentNumber=") && response.body.index("status=0")
+        "SUCCESS"
+      else
+        "FAILURE"
+      end
+      payment.save!
+      Wirecard::Response.new("#{payment_state}, #{payment.response_code}", {payment_state: payment_state, response_code: payment.response_code})
     end
   end
 end
